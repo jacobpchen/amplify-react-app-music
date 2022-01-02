@@ -6,10 +6,12 @@ import { AmplifySignOut, withAuthenticator } from '@aws-amplify/ui-react'
 import { listSongs } from './graphql/queries'
 import { updateSong } from './graphql/mutations'
 
-import { Paper, IconButton } from '@material-ui/core'
+import { Paper, IconButton, TextField } from '@material-ui/core'
 import PlayArrowIcon from '@material-ui/icons/PlayArrow'
 import FavoriteIcon from '@material-ui/icons/Favorite'
 import PauseIcon from '@material-ui/icons/Pause';
+import AddIcon from '@material-ui/icons/Add';
+import PublishIcon from '@material-ui/icons/Publish';
 
 import './App.css';
 
@@ -20,6 +22,8 @@ function App() {
   const [songs, setSongs] = useState([]);
   const [songPlaying, setSongPlaying] = useState('');
   const [audioURL, setAudioURL] = useState('');
+  const [showAddSong, setShowAddNewSong] = useState(false);
+
 
   useEffect(() => {
     fetchSongs()
@@ -35,6 +39,32 @@ function App() {
       console.log('error on fetching songs', error)
     }
   }
+
+  const AddSong = ({ onUpload }) => {
+    const uploadSong = async () => {
+      //Upload the song
+      onUpload();
+    };
+
+    return (
+      <div className="newSong">
+        <TextField
+          label="Title"
+        />
+        <TextField
+          label="Artist"
+        />
+        <TextField
+          label="Description"
+        />
+        <IconButton onClick={uploadSong}>
+          <PublishIcon />
+        </IconButton>
+      </div>
+    );
+  };
+
+
 
   const toggleSong = async idx => {
     if (songPlaying === idx) {
@@ -102,6 +132,18 @@ function App() {
           );
         })}
       </div>
+
+      {
+        showAddSong ? <AddSong
+          onUpload={() => {
+            setShowAddNewSong(false);
+          }}
+        /> : <IconButton onClick={() => setShowAddNewSong(true)}>
+          <AddIcon />
+        </IconButton>
+
+      }
+
 
     </div>
   );
