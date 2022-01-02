@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Amplify, { API, graphqlOperation } from 'aws-amplify'
+import Amplify, { API, graphqlOperation, Storage } from 'aws-amplify'
 import awsconfig from './aws-exports'
 import { AmplifySignOut, withAuthenticator } from '@aws-amplify/ui-react'
 
@@ -9,6 +9,7 @@ import { updateSong } from './graphql/mutations'
 import { Paper, IconButton } from '@material-ui/core'
 import PlayArrowIcon from '@material-ui/icons/PlayArrow'
 import FavoriteIcon from '@material-ui/icons/Favorite'
+import PauseIcon from '@material-ui/icons/Pause';
 
 import './App.css';
 
@@ -17,6 +18,8 @@ Amplify.configure(awsconfig)
 function App() {
 
   const [songs, setSongs] = useState([]);
+  const [songPlaying, setSongPlaying] = useState('');
+  const [audioURL, setAudioURL] = useState('');
 
   useEffect(() => {
     fetchSongs()
@@ -33,6 +36,25 @@ function App() {
     }
   }
 
+  const toggleSong = async idx => {
+    if (songPlaying === idx) {
+      setSongPlaying('');
+      return;
+    }
+
+    const songFilePath = songs[idx].filePath;
+    try {
+      const fileAccessURL = await Storage.get(songFilePath, { expires: 60 });
+      console.log('access url', fileAccessURL);
+      setSongPlaying(idx);
+      setAudioURL(fileAccessURL);
+      return;
+    } catch (error) {
+      console.error('error accessing the file from s3', error);
+      setAudioURL('');
+      setSongPlaying('');
+    }
+  };
   const addLike = async idx => {
     try {
       const song = songs[idx];
@@ -61,8 +83,8 @@ function App() {
           return (
             <Paper variant="outlined" elevation={2} key={`song${idx}`}>
               <div className="songCard">
-                <IconButton aria-label="play">
-                  <PlayArrowIcon />
+                <IconButton aria-label="play" onClick={() => toggleSong(idx)}>
+                  {songPlaying === idx ? <PauseIcon /> : <PlayArrowIcon />}
                 </IconButton>
                 <div>
                   <div className="songTitle">{song.title}</div>
