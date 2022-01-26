@@ -34,6 +34,7 @@ function App() {
   const fetchSongs = async () => {
     try {
       const songData = await API.graphql(graphqlOperation(listSongs))
+      console.log(songData)
       const songList = songData.data.listSongs.items
       console.log('song list', songList)
       setSongs(songList)
